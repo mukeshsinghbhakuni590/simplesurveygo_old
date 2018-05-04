@@ -63,7 +63,24 @@
             </div>
 
             <div id="register" class="tab-pane fade">                
-
+                <div style="width:80%;margin:auto">
+                    <br><br>
+                    <div class="form-group">
+                        <label for="usr">UserName:</label>
+                        <input type="text" class="form-control" id="usr" ng-model="uname">
+                    </div>
+                    <div class="form-group">
+                        <label for="pwd">Password:</label>
+                        <input type="password" class="form-control" id="pwd" ng-model="passwd">
+                    </div>
+                    <div class="form-group">
+                        <label for="alias">Alias:</label>
+                        <input type="password" class="form-control" id="alias" ng-model="alias">
+                    </div>
+                    <button type="button" ng-click="signup()" class="btn btn-block btn-primary">    
+                        Sign Up
+                    </button>
+                </div>
             </div>
 
         </div>
@@ -77,7 +94,7 @@
 <script>
     var app = angular.module('myApp', ['ui.bootstrap']);
     app.controller('myCtrl', function($scope, $http, $timeout, $interval, $q) {
-        $scope.service_url = "http://localhost:3000/api/v1/";
+        $scope.service_url = "http://127.0.0.1/api/v1/";
         
         $scope.login = function() {
             $http(
@@ -91,15 +108,56 @@
                 }
             ).then(
                 function(response) {
-                    localStorage.token = response.data.responseData.token
-                    window.location.href = "http://localhost:3000/surveyslist.html";
-                },
+                    localStorage.token = response.data.responseData
+                    localStorage.severAddress = $scope.service_url
+                    console.log(response.data)
+                    window.open("surveyslist.html","_self")
+                    $scope.username = null
+                    $scope.password = null
+                }    
+            ) 
+        }
+
+        $scope.signup = function() {
+            $http(
+                {
+                    url: $scope.service_url + "user/",
+                    method: 'POST',
+                    data: {
+                        Username : $scope.uname,
+                        Password : $scope.passwd,
+                        Alias    : $scope.alias 
+                    }
+                }
+            ).then(
                 function(response) {
-                    alert(response.data.message)
-                }     
+                    console.log(response.data)
+                    $scope.create_user_survey()
+                }
+                      
             ) 
         } 
-
+      $scope.create_user_survey = function() {
+        $http(
+                {
+                    url: $scope.service_url + "surveyOpr/",
+                    method: 'POST',
+                    data: {
+                        Username : $scope.uname,
+                        Surveys  : []
+                    }
+                }
+            ).then(
+                function(response) {
+                    console.log(response.data)
+                    $scope.uname = null
+                    $scope.passwd = null
+                    $scope.alias = null
+                    window.open("index.html","_self")
+                }
+                      
+            ) 
+      }
 
     })
 </script>

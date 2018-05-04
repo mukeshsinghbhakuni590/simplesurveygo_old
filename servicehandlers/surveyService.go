@@ -7,44 +7,51 @@ import (
 	"simplesurveygo/validators"
 )
 
+
 type SurveyService struct {
 }
 
-func (p  SurveyService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (p SurveyService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	response := methodRouter(p, w, r)
 	response.(SrvcRes).RenderResponse(w)
 }
 
-func (p  SurveyService) Get(r *http.Request) SrvcRes {
-	token, ok1 := r.URL.Query()["token"]
-	session , ok2 := r.URL.Query()["session"]
-	surveyid , ok3 := r.URL.Query()["surveyid"]
-    if (!ok1 || !ok2 || !ok3) {
-		return SimpleBadRequest("parameters not passed") 
+func (p SurveyService) Get(r *http.Request) SrvcRes {
+	option ,ok1 := r.URL.Query()["option"]
+	token  ,ok2 := r.URL.Query()["token"]
+
+	if (!ok1 || !ok2) || (option[0] == "" || token[0] == "") {
+		return SimpleBadRequest("parameters not passed properly")
 	} else {
-        if validators.Validate_user_session(token[0],session[0]) {
-		   survey_info := dao.Get_survey_data_by_id(surveyid[0])
-		   s_info, _ := json.Marshal(survey_info)
-		   return Simple200OK(string(s_info))
+        if !validators.Validate_token(token[0]) {
+			return  UnauthorizedAccess("you have to login again")
 		} else {
-			return UnauthorizedAccess("you have to login again")
-		} 
+		   if option[0] == "all" {
+			   all_survey := dao.Get_all_survey()
+			   return Response200OK(all_survey)
+		   } else {
+			   survey_info := dao.Get_survey(option[0])
+			   return Response200OK(survey_info)
+		   }		
+		}
 	}
-}
+}	  
 
-func (p  SurveyService) Put(r *http.Request) SrvcRes {
+func (p SurveyService) Put(r *http.Request) SrvcRes {
 	return ResponseNotImplemented()
+	
 }
 
-func (p  SurveyService) Post(r *http.Request) SrvcRes {
+func (p SurveyService) Post(r *http.Request) SrvcRes {
 	decoder := json.NewDecoder(r.Body)
-	var t dao.SurveyPostStruct
+	var t dao.SurveyPost
 	err := decoder.Decode(&t)
 	if err != nil {
 		panic(err)
 	}
 	defer r.Body.Close()
-	s_info, _ := json.Marshal(dao.Create_survey(t))
-	return Simple200OK(string(s_info)) 
+	s_info := dao.Create_survey(t)
+	service := Response200OK(s_info)
+	service.Message = "survey created"
+	return service 	
 }
-

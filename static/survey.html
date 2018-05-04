@@ -1,0 +1,192 @@
+<html>
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.1/angular.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.1/angular-animate.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.1/angular-sanitize.js"></script>
+  <script src="https://angular-ui.github.io/bootstrap/ui-bootstrap-tpls-2.5.0.js"></script>
+  <link href="https://netdna.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<style>
+      .panel > .panel-heading {
+          background-image: none;
+          background-color: #006666;
+          color: white;
+          border: 1px solid #006666; 
+      }
+
+      .panel {
+          border: 1px solid #006666;
+      }
+</style>
+
+<body>
+    <div ng-app="myApp" ng-controller="myCtrl" style="margin-left:10%;margin-right:10%;margin-top:50px;width:80%" >
+
+        <h1 style="text-align:center;font-size:450%;font-family:'Times New Roman'" >Survey</h1>
+        <div class="panel-body table-responsive">
+            <table class="table table-bordered">
+                <thead> 
+                        <tr>
+                                <th>Question</th>	
+                        </tr>
+                </thead>
+                <tbody ng-repeat="x in questions">
+                    <tr>
+                        <td>
+                            <button type="button"  data-toggle="dropdown" class="btn btn-block btn-link dropdown-toggle" ng-click="get_answers(x.Qid)">    
+                                {{x.Question}} <span class="caret"></span>
+                            </button>
+                            <ul class="dropdown-menu" > 
+                                <li ng-repeat="x in answers">
+                                        {{x.Answer}} :by: {{x.Username}}   
+                                </li>
+                                <li>
+                                    <button type="button" class="btn btn-block btn-success" ng-click="add_answer()">Add Answer</button> 
+                                </li>
+                            </ul>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div>
+            <button type="button"  data-toggle="dropdown" class="btn btn-block btn-primary dropdown-toggle">    
+                Add Question <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu" > 
+                <li>
+                    <input type="text" class="form-control" placeholder="enter question"  ng-model="ques">
+                </li>
+                <li>
+                    <button type="button" class="btn btn-block btn-success" ng-click="add_question()">Add</button> 
+                </li>
+            </ul>
+           
+        </div>
+        
+       
+        
+        <div>
+                <button type="button"  class="btn btn-block btn-primary " ng-click="back()">    
+                    Back  
+                </button>
+        </div>
+    </div>     
+                
+
+    
+</body>
+
+
+<script>
+    var app = angular.module('myApp', ['ui.bootstrap']);
+    app.controller('myCtrl', function($scope, $http, $timeout, $interval, $q) {
+    $scope.service_url = "http://127.0.0.1/api/v1/";
+        
+    $scope.curr_survey_id = localStorage.getItem("curr_sid")
+    $scope.curr_survey_info = []
+    $scope.questions = []
+    $scope.usrtkn = localStorage.getItem("token")
+    $scope.answers = []
+    $scope.curr_q = null
+
+
+    $scope.show_survey = function() {
+        $http(
+            {
+                url: $scope.service_url + 'survey/',
+                method: 'GET',
+                params: {
+                   option : $scope.curr_survey_id,
+                   token  : $scope.usrtkn
+                }
+            }
+        ).then(
+            function (response) {
+                console.log(response.data)
+                $scope.curr_survey_info = response.data.responseData   
+                $scope.questions = $scope.curr_survey_info.questions
+                
+            }
+        )
+    }
+
+    $scope.add_question = function() {
+        $http(
+                {
+                    url: $scope.service_url + "user/",
+                    method: 'PUT',
+                    params : {
+                          operation : "question"
+                    },
+                    data: {
+                        Token : $scope.usrtkn,
+	                    Question : $scope.ques,
+	                    SurveyId : $scope.curr_survey_id 
+                    }
+                }
+            ).then(
+                function(response) {
+                   console.log("question : " , response.data.responseData)
+                   $scope.curr_survey_info = response.data.responseData
+                   $scope.questions = $scope.curr_survey_info.questions  
+                   window.open("survey.html","_self")   
+                }    
+            )
+    }
+
+    $scope.back = function() {
+        localStorage.removeItem("curr_sid")
+        window.open("surveyslist.html","_self")
+    }
+    
+    $scope.get_answers = function(Qid) {
+        $scope.curr_q = Qid 
+        for (i=0;i<$scope.questions.length;i++) {
+           if  ($scope.questions[i].Qid == Qid)
+                 $scope.answers = ($scope.questions[i].Answers)
+        }
+        console.log($scope.answers[0])
+    } 
+
+    $scope.add_answer = function() {
+        var answ = prompt("please enter your answer")
+        if (answ!=null) { 
+        $http(
+                {
+                    url: $scope.service_url + "user/",
+                    method: 'PUT',
+                    params : {
+                          operation : "answer"
+                    },
+                    data: {
+                        SurveyId : $scope.curr_survey_id,
+	                    Qid  : $scope.curr_q,
+	                    Answer : answ, 
+	                    Token : $scope.usrtkn, 
+                    }
+                }
+            ).then(
+                function(response) { 
+                   console.log("answer : " , response.data)
+                   $scope.curr_survey_info = response.data.responseData  
+                   $scope.questions = $scope.curr_survey_info.questions  
+                   window.open("survey.html","_self")   
+                }    
+            ) }
+    }
+
+    $scope.show_survey()
+
+    })  
+</script>
+
+</html>

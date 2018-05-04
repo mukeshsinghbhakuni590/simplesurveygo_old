@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"simplesurveygo/dao"
+	"simplesurveygo/validators"
 )
 
 type UserValidationHandler struct {
@@ -20,7 +21,17 @@ func (p UserValidationHandler) Get(r *http.Request) SrvcRes {
 }
 
 func (p UserValidationHandler) Put(r *http.Request) SrvcRes {
-	return ResponseNotImplemented()
+	token, ok := r.URL.Query()["token"]
+	if !ok || token[0] == "" {
+		return SimpleBadRequest("parameters not passed properly")	
+	} else {
+		if !validators.Validate_session(token[0]) {
+			return SimpleBadRequest("session not present")
+		} else {
+			dao.Remove_session(token[0])
+			return Simple200OK("session deleted successfully")
+		}
+	}
 }
 
 func (p UserValidationHandler) Post(r *http.Request) SrvcRes {

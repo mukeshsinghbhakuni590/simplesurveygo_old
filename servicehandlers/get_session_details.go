@@ -21,7 +21,6 @@ func (p SessionHandler) Get(r *http.Request) SrvcRes {
 	fmt.Println("HEADERS : ", r.Header)
 
 	token := tokens[0]
-
 	user := dao.GetSessionDetails(token)
 	return Response200OK(user)
 }
