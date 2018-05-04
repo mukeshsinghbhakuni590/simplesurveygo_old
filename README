@@ -1,0 +1,3 @@
+Simple service for cnoducting surveys and polls
+
+db.user.insertOne({"username":"deepak","password":"pwddeepak","alias":"Deepak Dalai"})

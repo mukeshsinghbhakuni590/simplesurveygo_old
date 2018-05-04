@@ -1,0 +1,125 @@
+<html>
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.1/angular.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.1/angular-animate.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.1/angular-sanitize.js"></script>
+  <script src="https://angular-ui.github.io/bootstrap/ui-bootstrap-tpls-2.5.0.js"></script>
+  <link href="https://netdna.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<style>
+      .panel > .panel-heading {
+          background-image: none;
+          background-color: #006666;
+          color: white;
+          border: 1px solid #006666; 
+      }
+
+      .panel {
+          border: 1px solid #006666;
+      }
+</style>
+
+<body>
+    <div ng-app="myApp" ng-controller="myCtrl" style="margin-left:10%;margin-right:10%;margin-top:50px;width:80%" >
+
+        <h1 style="text-align:center;font-size:450%;font-family:'Times New Roman'" >Survey Service</h1>
+        <br>
+        <br>
+        <div class="col-sm-4">
+            <div class="contlists">
+                <div class="panel-body table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                                <tr>
+                                        <th>Survey Id</th>
+                                        <th>Survey Title</th>
+                                        <th>buttons</th>	
+                                </tr>
+                        </thead>
+                        <tbody ng-repeat="x in surveylist">
+                            <tr>
+                                <td> {{x.SurveyId}} </td>
+                                <td>
+                                    <button type="button" class="btn btn-primary" >
+                                            {{x.Title}}
+                                    </button>
+                                </td>
+                                <td>
+                                    <button type="button" class="btn btn-success" ng-click="show_survey_info(x.SurveyId)">
+                                        show survey
+                                    </button>	
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        <h1 style="text-align:center;font-size:250%;font-family:'Times New Roman'" >Survey list</h1>
+        
+
+                
+
+    </div>
+</div>
+</body>
+
+
+<script>
+    var app = angular.module('myApp', ['ui.bootstrap']);
+    app.controller('myCtrl', function($scope, $http, $timeout, $interval, $q) {
+        $scope.service_url = "http://localhost:3000/api/v1/";
+    
+    $scope.surveyinfo = []
+    $scope.usrtkn = localStorage.getItem("token")
+
+    $scope.show_survey_info = function(sid) {
+        $http(
+            {
+                url: $scope.service_url + '/',
+                method: 'GET',
+                params: {
+                    token :     $scope.usrtkn,
+                    session :   $scope.session,
+                    surveyid :  sid
+                }
+            }
+        ).then(
+            function (response) {
+                console.log(response)
+                $scope.surveyinfo = response.data
+            }
+        )        
+    }   
+    
+    $scope.get_user_surveys = function() {
+        $http(
+            {
+                url: $scope.service_url + '/',
+                method: 'GET',
+                params: {
+                    token :     $scope.usrtkn,
+                    session :   $scope.session,
+                    surveyid :  sid
+                }
+            }
+        ).then(
+            function (response) {
+                console.log(response)
+                $scope.surveyinfo = response.data
+            }
+        )
+    }
+   
+    $scope.get_user_surveys()
+    })
+</script>
+
+</html>
